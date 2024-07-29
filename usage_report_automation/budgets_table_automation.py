@@ -20,7 +20,7 @@ conn = connection.MySQLConnection(
     user='admin',
     host='cost-eng.cnnuygjl0vgg.us-east-1.rds.amazonaws.com',
     database='cost',
-    password='costdb3306'
+    password='***'
 )
 mycursor = conn.cursor()
 
@@ -259,12 +259,24 @@ for i in acc_budget_usage_forecast:
 mycursor.execute(f"select count(*) from aws_account_budgets_ur where month={today.month} and year={today.year} and quarter='{quarter}';")
 checkCurrentMonthEntry = mycursor.fetchall()
 
+mycursor.execute(f"select account_id from aws_account_budgets_ur where month={today.month} and year={today.year} and quarter='{quarter}';")
+existingIds = [i[0] for i in mycursor.fetchall()]
+
+records_to_insert = []
+records_to_update = []
+
+for record in listToInsert:
+    if record[0] not in existingIds:
+        records_to_insert.append(record)
 
 
 if checkCurrentMonthEntry[0][0] == 0 :
     insertToBudgetTable = "insert into aws_account_budgets_ur(`account_id`,`year`,`month`,`quarter`,`acc_budget`,`acc_usage`,`acc_forecast`,`lock_flag`) values(%s,%s,%s,%s,%s,%s,%s,%s);"
     mycursor.executemany(insertToBudgetTable, listToInsert)
 
+if checkCurrentMonthEntry[0][0] != 0 and records_to_insert != []:
+    insertToBudgetTable = "insert into aws_account_budgets_ur(`account_id`,`year`,`month`,`quarter`,`acc_budget`,`acc_usage`,`acc_forecast`,`lock_flag`) values(%s,%s,%s,%s,%s,%s,%s,%s);"
+    mycursor.executemany(insertToBudgetTable, records_to_insert)
 
 else:
     updateBudgetTable = '''UPDATE aws_account_budgets_ur
