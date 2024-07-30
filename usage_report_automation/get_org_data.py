@@ -30,6 +30,7 @@ def getFewFieldsFromExcel():
     # created automatically when the authorization flow completes for the first
     # time.
     if os.path.exists('/home/ec2-user/mailer/budgets/GCP/token.json'):
+        print("Get Budget from Excel")
         creds = Credentials.from_authorized_user_file('/home/ec2-user/mailer/budgets/GCP/token.json', SCOPES)
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
